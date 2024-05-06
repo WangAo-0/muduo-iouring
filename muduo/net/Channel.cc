@@ -43,7 +43,11 @@ Channel::~Channel()
     assert(!loop_->hasChannel(this));
   }
 }
-
+/**
+ * @brief 绑定TcpConnection，weak_ptr
+ * 
+ * @param obj 
+ */
 void Channel::tie(const std::shared_ptr<void>& obj)
 {
   tie_ = obj;
@@ -63,9 +67,11 @@ void Channel::remove()
   loop_->removeChannel(this);
 }
 
+
 void Channel::handleEvent(Timestamp receiveTime)
 {
   std::shared_ptr<void> guard;
+
   if (tied_)
   {
     guard = tie_.lock();

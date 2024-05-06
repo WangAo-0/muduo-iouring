@@ -82,6 +82,7 @@ void Acceptor::handleRead()
       ::close(idleFd_);
       idleFd_ = ::accept(acceptSocket_.fd(), NULL, NULL);
       ::close(idleFd_);
+      // 在文件描述符耗尽的情况下，优雅地断开新的连接，防止客户端长时间等待，避免客户端因为连接请求无法被接受而挂起
       idleFd_ = ::open("/dev/null", O_RDONLY | O_CLOEXEC);
     }
   }

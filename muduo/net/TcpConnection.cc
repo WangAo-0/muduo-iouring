@@ -396,10 +396,15 @@ void TcpConnection::handleWrite()
       // {
       //   shutdownInLoop();
       // }
+
+      // 写错误：
+      // 如果这里的错误是EPIPE或ECONNRESET，
+      // 如果向一个已经关闭的连接继续写数据，muduo这里记录但不管，等接收到FIN消息再执行关闭连接
+      // 这里应该也可以直接handleClose吧，如果这里的错误是EPIPE或ECONNRESET
     }
   }
   else
-  {
+  { // 这里是旧的事件，服务器端在执行关闭连接前，触发的事件
     LOG_TRACE << "Connection fd = " << channel_->fd()
               << " is down, no more writing";
   }
@@ -412,12 +417,14 @@ void TcpConnection::handleClose()
   assert(state_ == kConnected || state_ == kDisconnecting);
   // we don't close fd, leave it to dtor, so we can find leaks easily.
   setState(kDisconnected);
-  channel_->disableAll();
+  channel_->disableAll(); // 即使当对端仅关闭了写端，也不会继续写入数据了
 
   TcpConnectionPtr guardThis(shared_from_this());
-  connectionCallback_(guardThis);
+  connectionCallback_(guardThis); // 执行连接关闭的用户函数
   // must be the last line
-  closeCallback_(guardThis);
+  closeCallback_(guardThis); 
+  // 这里只会执行TcpConnection::connectDestroyed中的channel->remove()
+  // channel_->disableAll();和  connectionCallback_(guardThis);已经执行过 
 }
 
 void TcpConnection::handleError()

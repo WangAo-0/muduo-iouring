@@ -56,8 +56,13 @@ void TcpServer::setThreadNum(int numThreads)
   threadPool_->setThreadNum(numThreads);
 }
 
+/**
+ * @brief 这是一种线程安全的方式来避免服务器被多次启动。
+ * 
+ */
 void TcpServer::start()
 {
+  // 获取当前started_的值并将其设置为1，然后检查原始值是否为0
   if (started_.getAndSet(1) == 0)
   {
     threadPool_->start(threadInitCallback_);
@@ -110,6 +115,7 @@ void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
            << "] - connection " << conn->name();
   size_t n = connections_.erase(conn->name());
   (void)n;
+  // 消除未使用变量的编译器警告
   assert(n == 1);
   EventLoop* ioLoop = conn->getLoop();
   ioLoop->queueInLoop(

@@ -106,6 +106,10 @@ class EventLoop : noncopyable
   bool hasChannel(Channel* channel);
 
   // pid_t threadId() const { return threadId_; }
+  /**
+   * @brief 这是一种良好的编程实践，可以提高代码的健壮性和安全性。
+   * 
+   */
   void assertInLoopThread()
   {
     if (!isInLoopThread())

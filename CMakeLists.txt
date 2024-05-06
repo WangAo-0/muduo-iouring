@@ -28,7 +28,7 @@ set(CXX_FLAGS
  -Wpointer-arith
  -Wshadow
  -Wwrite-strings
- -march=native
+#  -march=native
  # -MMD
  -std=c++11
  -rdynamic

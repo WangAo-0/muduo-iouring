@@ -16,7 +16,7 @@
 #include "muduo/net/SocketsOps.h"
 
 #include <errno.h>
-
+#include <sys/ioctl.h>
 using namespace muduo;
 using namespace muduo::net;
 
@@ -48,7 +48,8 @@ TcpConnection::TcpConnection(EventLoop* loop,
     channel_(new Channel(loop, sockfd)),
     localAddr_(localAddr),
     peerAddr_(peerAddr),
-    highWaterMark_(64*1024*1024)
+    // highWaterMark_(64*1024*1024)
+    highWaterMark_(10*1024)
 {
   channel_->setReadCallback(
       std::bind(&TcpConnection::handleRead, this, _1));
@@ -391,7 +392,9 @@ void TcpConnection::handleWrite()
     }
     else
     {
-      LOG_SYSERR << "TcpConnection::handleWrite";
+      int pending_data;
+      ioctl(channel_->fd(), TIOCOUTQ, &pending_data);
+      LOG_SYSERR <<" Conn : "<<name()<< " TcpConnection::handleWrite : "<<pending_data;
       // if (state_ == kDisconnecting)
       // {
       //   shutdownInLoop();
